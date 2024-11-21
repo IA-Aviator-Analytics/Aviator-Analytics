@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Analytics</title>
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .brand span {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .brand .highlight {
+            color: #dc2626;
+        }
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .nav a {
+            font-size: 1rem;
+            text-decoration: none;
+            color: white;
+            transition: color 0.3s;
+        }
+        .nav a:hover {
+            color: #dc2626;
+        }
+        .hero {
+            margin-top: 5rem;
+        }
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        @media (min-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .hero-text {
+            max-width: 500px;
+        }
+        .hero-text h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #b91c1c;
+        }
+        .btn-secondary {
+            border: 2px solid #dc2626;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(220, 38, 38, 0.1);
+        }
+        .hero-image {
+            text-align: center;
+        }
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="header container">
+        <div class="brand">
+            <span>AVIATOR</span>
+            <span class="highlight">ANALYTICS</span>
+        </div>
+        <nav class="nav">
+            <a href="/sobre-nosotros">Sobre Nosotros</a>
+            <a href="/login">Iniciar Sesión</a>
+        </nav>
+    </header>
+    <main class="hero container">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Identifica patrones en los multiplicadores y mejora tu estrategia de juego</h1>
+                <div class="btn-group">
+                    <a href="file-upload" class="btn btn-primary">Comenzar Análisis</a>
+                    <a href="/info" class="btn btn-secondary">Más información</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="../static/avIAtor.jpg" alt="Aviator Logo" width="400" height="400">
+            </div>
+        </div>
+    </main>
+</body>
+</html>

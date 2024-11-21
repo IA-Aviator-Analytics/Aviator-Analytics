@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura y Análisis</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Subir Archivo para Análisis</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="upload-area">
+                <input type="file" id="fileInput" name="image" hidden>
+                <button type="button" class="upload-button" id="selectButton">Seleccionar Imagen</button>
+            </div>
+            <button type="submit" class="upload-button">Subir Imagen</button>
+        </form>
+        <br>
+        <div>
+            <button id="captureButton" class="upload-button">Capturar Pantalla</button>
+        </div>
+        <canvas id="captureCanvas" class="hidden"></canvas>
+        <div id="results"></div>
+    </div>
+    <script src="../static/js/screenCapture.js"></script>
+</body>
+</html>
