@@ -108,6 +108,7 @@ def edit_text():
             continue
 
     if multipliers:
+        multipliers.reverse()
         # Ajustar multiplicadores al rango 1-10
         adjusted_multipliers = preprocess_multipliers(multipliers)
         adjusted_scaled = scaler_y.fit_transform(np.array(adjusted_multipliers).reshape(-1, 1))
