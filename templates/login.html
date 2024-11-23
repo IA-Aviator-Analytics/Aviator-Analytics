@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Enlace a estilos CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+
+</head>
+<body>
+    <div class="login-container">
+        <h2>Iniciar Sesión</h2>
+        <form action="/login" method="post" class="login-form">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" class="form-input" required>
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" class="form-input" required>
+            <button type="submit" class="form-button">Ingresar</button>
+        </form>
+    </div>
+</body>
+</html>

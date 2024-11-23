@@ -5,15 +5,17 @@ import pytesseract
 import matplotlib
 matplotlib.use('Agg')  # Configurar Matplotlib para backend no interactivo
 import matplotlib.pyplot as plt
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory, redirect, url_for, session
 from PIL import Image
 from tensorflow.keras.models import load_model
 from tensorflow.keras.losses import MeanSquaredError
 from sklearn.preprocessing import MinMaxScaler
 import io
 import base64
+import json
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'
 
 # Ruta de Tesseract
 pytesseract.pytesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -39,7 +41,14 @@ def index():
 
 @app.route('/file-upload')
 def file_upload():
-    return render_template('file-upload.html')
+    # Verificar si el usuario está autenticado
+    if 'user' in session:
+        # Pasar la información de que el usuario está autenticado a la plantilla
+        multipliers_history = session.get('multipliers_history', [])
+        return render_template('file-upload.html', is_authenticated=True, multipliers_history=multipliers_history)
+    else:
+        return redirect(url_for('login'))
+
 
 @app.route('/graphs/<path:filename>')
 def serve_graph(filename):
@@ -164,6 +173,8 @@ def process_image(file_path):
             continue
 
     if multipliers:
+        multipliers.reverse()
+
         adjusted_multipliers = preprocess_multipliers(multipliers)
         adjusted_scaled = scaler_y.fit_transform(np.array(adjusted_multipliers).reshape(-1, 1))
         input_data = adjusted_scaled.reshape(1, len(adjusted_scaled), 1)
@@ -178,10 +189,18 @@ def process_image(file_path):
             'prediction': float(prediction[0][0])
         }
 
+        # Guardar los multiplicadores localmente
+        saved_multipliers = save_multipliers_locally(multipliers)
+
+        multiplers_to_show = multipliers
         # Generar gráficos
         generate_graphs(multipliers, adjusted_multipliers, float(prediction[0][0]))
 
-        return jsonify(current_results)
+        return jsonify({
+            'text': text,
+            'multipliers': multiplers_to_show,
+            'prediction': float(prediction[0][0])
+        })
     else:
         return jsonify({'error': 'No se encontraron multiplicadores en la imagen'}), 400
 
@@ -216,6 +235,97 @@ def generate_graphs(multipliers, adjusted_multipliers, prediction):
     plt.legend()
     plt.savefig(os.path.join(GRAPH_FOLDER, 'multipliers_trend.png'))
     plt.close()
+
+# Credenciales estáticas para el ejemplo del login
+USER = "admin"
+PASSWORD = "admin"
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+    elif request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if username == USER and password == PASSWORD:
+            session['user'] = username
+            return redirect(url_for("file_upload"))
+        else:
+            return redirect(url_for("index"))
+
+@app.route("/info")
+def info():
+    return render_template("info.html")
+
+
+@app.route("/sobre-nosotros")
+def sobre_nosotros():
+    return render_template("sobre-nosotros.html")
+
+
+def save_multipliers_locally(multipliers):
+    """Guarda los multiplicadores en un archivo JSON."""
+    file_path = 'multipliers.json'
+    try:
+        # Verificar si el archivo existe y cargar los datos anteriores
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                saved_multipliers = json.load(f)
+        else:
+            saved_multipliers = []
+
+        # Agregar los nuevos multiplicadores a los guardados
+        saved_multipliers.append(multipliers)
+
+        # Guardar los datos en el archivo
+        with open(file_path, 'w') as f:
+            json.dump(saved_multipliers, f, indent=4)
+
+        return saved_multipliers
+    except Exception as e:
+        print(f"Error al guardar los multiplicadores: {e}")
+        return None
+    
+@app.route('/get-multipliers')
+def get_multipliers():
+    """Devuelve los multiplicadores guardados en el archivo JSON."""
+    try:
+        file_path = 'multipliers.json'
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                saved_multipliers = json.load(f)
+            return jsonify({'multipliers': saved_multipliers})
+        else:
+            return jsonify({'multipliers': []})
+    except Exception as e:
+        return jsonify({'error': f"Error al obtener los multiplicadores: {e}"}), 500
+
+
+@app.route('/add-multiplier', methods=['POST'])
+def add_multiplier():
+    try:
+        data = request.get_json()
+        multiplier = data.get('multiplier')
+        
+        # Cargar los multiplicadores guardados desde el archivo JSON
+        file_path = 'multipliers.json'
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                multipliers = json.load(f)
+        else:
+            multipliers = []
+
+        # Agregar el nuevo multiplicador
+        multipliers.append([multiplier])  # Aquí puedes ajustar la forma en que los almacenas
+
+        # Guardar de nuevo los multiplicadores en el archivo JSON
+        with open(file_path, 'w') as f:
+            json.dump(multipliers, f)
+        
+        return jsonify({'message': 'Multiplicador agregado exitosamente'}), 200
+    except Exception as e:
+        return jsonify({'error': f"Error al agregar el multiplicador: {e}"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

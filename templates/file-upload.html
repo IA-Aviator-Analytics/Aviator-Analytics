@@ -5,9 +5,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Captura y Análisis</title>
     <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        /* Estilos para el Sidebar */
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: -250px; /* Inicialmente oculto */
+            background-color: #222222; /* Color de fondo ajustado */
+            padding: 20px;
+            box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+            transition: left 0.3s ease; /* Transición suave al abrir/cerrar */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar.open {
+            left: 0; /* Muestra el sidebar cuando está abierto */
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Contenedor desplazable para los multiplicadores */
+        .multipliers-list {
+            max-height: 800px; /* Aumentar altura máxima para permitir más elementos */
+            overflow-y: auto; /* Hacer que la lista sea desplazable */
+            margin-bottom: 80px;
+        }
+
+        .container {
+            margin-left: 270px;
+            padding: 20px;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .toggle-sidebar-btn {
+            position: absolute;
+            top: 20px;
+            right: -40px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+        }
+
+        .toggle-sidebar-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .container.with-sidebar {
+            margin-left: 270px;
+        }
+
+        /* Estilos para el input y el botón */
+        .manual-entry {
+            position: absolute;
+            bottom: 50px; /* Subir el formulario más arriba */
+            width: calc(100% - 40px); /* Asegura que el formulario ocupe todo el ancho menos el padding */
+            padding: 10px 0;
+            background-color: #222222; /* Fondo de la sección del formulario */
+        }
+
+        .manual-entry input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .manual-entry button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .manual-entry button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Sidebar de historial de multiplicadores -->
+    <div class="sidebar" id="sidebar">
+        <!-- Botón para abrir/cerrar el Sidebar -->
+        <button class="toggle-sidebar-btn" id="toggleSidebarButton">☰</button>
+        <h3>Historial de Multiplicadores</h3>
+
+        <!-- Contenedor desplazable para los multiplicadores -->
+        <div class="multipliers-list">
+            <ul id="multipliers-list"></ul>
+        </div>
+
+        <!-- Campo de texto y botón para ingresar manualmente los multiplicadores -->
+        <div class="manual-entry">
+            <input type="text" id="manualMultiplierInput" placeholder="Ingresa un multiplicador, ej. 2.5, 3.0">
+            <button id="addMultiplierButton">Agregar Manualmente</button>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="container" id="mainContainer">
         <h1>Subir Archivo para Análisis</h1>
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="upload-area">
@@ -23,6 +146,63 @@
         <canvas id="captureCanvas" class="hidden"></canvas>
         <div id="results"></div>
     </div>
+
     <script src="../static/js/screenCapture.js"></script>
+    <script>
+        // Función para cargar y mostrar los multiplicadores guardados
+        function loadMultipliersHistory() {
+            fetch('/get-multipliers')
+                .then(response => response.json())
+                .then(data => {
+                    const multipliersList = document.getElementById('multipliers-list');
+                    multipliersList.innerHTML = ''; // Limpiar lista antes de añadir nuevos items
+                    data.multipliers.forEach((multipliers, index) => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `Historia ${index + 1}: ${multipliers.join(', ')}`;
+                        multipliersList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error al cargar el historial de multiplicadores:', error));
+        }
+
+        // Función para agregar un multiplicador manualmente
+        function addManualMultiplier() {
+            const manualMultiplierInput = document.getElementById('manualMultiplierInput');
+            const multiplier = manualMultiplierInput.value.trim();
+
+            if (multiplier) {
+                fetch('/add-multiplier', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ multiplier: multiplier })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadMultipliersHistory(); // Recargar el historial
+                    manualMultiplierInput.value = ''; // Limpiar el campo de texto
+                })
+                .catch(error => console.error('Error al agregar el multiplicador:', error));
+            }
+        }
+
+        // Agregar evento al botón de agregar manualmente
+        const addMultiplierButton = document.getElementById('addMultiplierButton');
+        addMultiplierButton.addEventListener('click', addManualMultiplier);
+
+        // Cargar historial al cargar la página
+        window.onload = loadMultipliersHistory;
+
+        // Función para abrir/cerrar el sidebar
+        const toggleSidebarButton = document.getElementById('toggleSidebarButton');
+        const sidebar = document.getElementById('sidebar');
+        const mainContainer = document.getElementById('mainContainer');
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open'); // Abre/cierra el sidebar
+            mainContainer.classList.toggle('with-sidebar'); // Ajusta el contenedor principal
+        });
+    </script>
 </body>
 </html>
